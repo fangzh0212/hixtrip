@@ -15,6 +15,51 @@ spring:
       port: 6379
       connect-timeout: 5000
 
+  # ShardingSphere 配置项
+  shardingsphere:
+    datasource:
+      names: master, slave
+      master:
+        url: jdbc:mysql://localhost:3306/master?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        username: root
+        password: 123456
+      slave:
+        url: jdbc:mysql://localhost:3306/slave?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        username: root
+        password: 123456
+    rules: # 配置路由规则
+      readwrite-splitting: # 配置读写分离
+        data-sources: # 读写分离数据库配置
+          read-write-datasource: # 自定义读写分离数据库配置名称
+            type: Static # 静态配置，配置的选项来自同一个YAML文件的datasource参数
+            props:
+              write-data-source-name: master # 写库的配置
+              read-data-source-names: slave # 读库的配置，多个从库之间使用逗号进行隔开
+              load-balancer-name: round-robin # 多个读库之间采用的访问策略
+        load-balancers: # 访问策略的配置
+          round-robin: # 自定义策略名称
+            type: ROUND_ROBIN # 明确的策略
+
+      sharding: # 数据分片配置
+        sharding-algorithms: # 数据分片算法配置
+          table-inline:
+            type: INLINE
+            props:
+              algorithm-expression: order_$->{user_id % 5}
+        tables: # 表的分片配置
+          logic_table_name:
+            actual-data-nodes: read-write-datasource.order_${0..4}
+            table-strategy:
+              standard:
+                sharding-column: user_id
+                sharding-algorithm-name: table-inline
+    mode:
+      type: Memory
+      repository:
+        type: JDBC
+
 mybatis-plus:
   mapper-locations: classpath:/mapper/*Mapper.xml
   #实体扫描，多个package用逗号或者分号分隔
