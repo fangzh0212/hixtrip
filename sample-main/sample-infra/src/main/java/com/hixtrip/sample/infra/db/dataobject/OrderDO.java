@@ -1,5 +1,6 @@
-package com.hixtrip.sample.domain.order.model;
+package com.hixtrip.sample.infra.db.dataobject;
 
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,26 +11,26 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 订单表
+ * DO示例
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
+@TableName(value = "order", autoResultMap = true)
 @SuperBuilder(toBuilder = true)
-public class Order {
+public class OrderDO {
 
     /**
-     * 订单号
+     * 主键
      */
-    private String id;
-
+    @TableId
+    private Long id;
 
     /**
      * 购买人
      */
     private String userId;
-
 
     /**
      * SkuId
@@ -52,13 +53,14 @@ public class Order {
     private LocalDateTime payTime;
 
     /**
-     * 支付状态
+     * 支付状态（1支付成功 2支付失败 3重复支付）
      */
     private String payStatus;
 
     /**
      * 删除标志（0代表存在 1代表删除）
      */
+    @TableLogic
     private Long delFlag;
 
     /**
@@ -69,6 +71,7 @@ public class Order {
     /**
      * 创建时间
      */
+    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
     /**
@@ -79,10 +82,6 @@ public class Order {
     /**
      * 修改时间
      */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
-
-
-    public void order(BigDecimal skuPrice) {
-        this.money = skuPrice.multiply(BigDecimal.valueOf(this.amount));
-    }
 }
